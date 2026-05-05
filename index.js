@@ -30,11 +30,18 @@
 
 class Component {
   constructor() {
+    this.state = {};
   }
 
   getDomNode() {
     this._domNode = this.render();
     return this._domNode;
+  }
+
+  update() {
+    const newNode = this.render();
+    this._domNode.replaceWith(newNode);
+    this._domNode = newNode;
   }
 }
 
@@ -44,9 +51,9 @@ class TodoList extends Component {
 
     this.state = {
       tasks: [
-        "Сделать домашку",
-        "Сделать практику",
-        "Пойти домой",
+        {text: "Сделать домашку", done: false},
+        {text: "Сделать практику", done: false},
+        {text: "Пойти домой", done: false},
       ],
       inputValue: "",
     };
@@ -58,11 +65,24 @@ class TodoList extends Component {
 
   onAddTask = () => {
     if (!this.state.inputValue.trim()) return;
-    this.state.tasks.push(this.state.inputValue);
+    this.state.tasks.push({
+      text: this.state.inputValue,
+      done: false,
+    });
     this.state.inputValue = "";
     this.update();
   };
 
+  toggleTask = (index) => {
+    this.state.tasks[index].done = !this.state.tasks[index].done;
+    this.update();
+  };
+
+  deleteTask = (index) => {
+    this.state.tasks.splice(index, 1);
+    this.update();
+  };
+  
   render() {
     return createElement("div", { class: "todo-list" }, [
       createElement("h1", {}, "TODO List"),
@@ -73,6 +93,7 @@ class TodoList extends Component {
             id: "new-todo",
             type: "text",
             placeholder: "Задание",
+            value: this.state.inputValue,
           },
           null,
           {
@@ -93,11 +114,11 @@ class TodoList extends Component {
       createElement(
         "ul",
         { id: "todos" },
-        this.state.tasks.map((task) =>
+        this.state.tasks.map((task, index) =>
           createElement("li", {}, [
-            createElement("input", { type: "checkbox" }),
-            createElement("label", {}, task),
-            createElement("button", {}, "🗑️"),
+            createElement("input", { type: "checkbox" }, null, { change: () => this.toggleTask(index) }),
+            createElement("label", {style: task.done ? "color: gray; text-decoration: line-through;" : "",}, task.text),
+            createElement("button", {}, "🗑️", { click: () => this.deleteTask(index) }),
           ])
         )
       ),
