@@ -45,17 +45,93 @@ class Component {
   }
 }
 
+class AddTask {
+  constructor(onAddTask, inputValue, onInputChange) {
+    this.onAddTask = onAddTask;
+    this.inputValue = inputValue;
+    this.onInputChange = onInputChange;
+  }
+
+  render() {
+    return createElement("div", { class: "add-todo" }, [
+      createElement(
+        "input",
+        {
+          id: "new-todo",
+          type: "text",
+          placeholder: "Задание",
+          value: this.inputValue,
+        },
+        null,
+        {
+          input: this.onInputChange,
+        }
+      ),
+
+      createElement(
+        "button",
+        { id: "add-btn" },
+        "+",
+        {
+          click: this.onAddTask,
+        }
+      ),
+    ]);
+  }
+}
+
+class Task {
+  constructor(task, onToggle, onDelete) {
+    this.task = task;
+    this.onToggle = onToggle;
+    this.onDelete = onDelete;
+  }
+
+  render() {
+    return createElement("li", {}, [
+      createElement(
+        "input",
+        { type: "checkbox" },
+        null,
+        { change: this.onToggle }
+      ),
+
+      createElement(
+        "label",
+        {
+          style: this.task.done
+            ? "color: gray; text-decoration: line-through;"
+            : "",
+        },
+        this.task.text
+      ),
+
+      createElement(
+        "button",
+        {
+          style: this.task.confirmDelete ? "background-color: red;" : "",
+        },
+        "🗑",
+        { click: this.onDelete }
+      ),
+    ]);
+  }
+}
+
 class TodoList extends Component {
   constructor() {
     super();
+
     const savedTasks = localStorage.getItem("tasks");
 
     this.state = {
-      tasks: savedTasks ? JSON.parse(savedTasks) : [
-        {text: "Сделать домашку", done: false, confirmDelete: false},
-        {text: "Сделать практику", done: false, confirmDelete: false},
-        {text: "Пойти домой", done: false, confirmDelete: false},
-      ],
+      tasks: savedTasks
+        ? JSON.parse(savedTasks)
+        : [
+            { text: "Сделать домашку", done: false, confirmDelete: false },
+            { text: "Сделать практику", done: false, confirmDelete: false },
+            { text: "Пойти домой", done: false, confirmDelete: false },
+          ],
       inputValue: "",
     };
   }
@@ -70,11 +146,13 @@ class TodoList extends Component {
 
   onAddTask = () => {
     if (!this.state.inputValue.trim()) return;
+
     this.state.tasks.push({
       text: this.state.inputValue,
       done: false,
       confirmDelete: false,
     });
+
     this.state.inputValue = "";
     this.update();
     this.saveToLocalStorage();
@@ -88,52 +166,36 @@ class TodoList extends Component {
 
   deleteTask = (index) => {
     const task = this.state.tasks[index];
+
     if (!task.confirmDelete) {
       task.confirmDelete = true;
     } else {
       this.state.tasks.splice(index, 1);
     }
+
     this.update();
     this.saveToLocalStorage();
   };
-  
+
   render() {
     return createElement("div", { class: "todo-list" }, [
       createElement("h1", {}, "TODO List"),
-      createElement("div", { class: "add-todo" }, [
-        createElement(
-          "input",
-          {
-            id: "new-todo",
-            type: "text",
-            placeholder: "Задание",
-            value: this.state.inputValue,
-          },
-          null,
-          {
-            input: this.onAddInputChange,
-          }
-        ),
 
-        createElement(
-          "button",
-          { id: "add-btn" },
-          "+",
-          {
-            click: this.onAddTask,
-          }
-        ),
-      ]),
+      new AddTask(
+        this.onAddTask,
+        this.state.inputValue,
+        this.onAddInputChange
+      ).render(),
 
       createElement(
         "ul",
         { id: "todos" },
         this.state.tasks.map((task, index) =>
-          createElement("li", {}, [
-            createElement("input", { type: "checkbox" }, null, { change: () => this.toggleTask(index) }),
-            createElement("label", { style: task.done ? "color: gray; text-decoration: line-through;" : "" }, task.text),
-            createElement("button", { style: task.confirmDelete ? "background-color: red;" : "" }, "🗑️", { click: () => this.deleteTask(index) }),
-          ])
+          new Task(
+            task,
+            () => this.toggleTask(index),
+            () => this.deleteTask(index)
+          ).render()
         )
       ),
     ]);
