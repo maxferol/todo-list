@@ -51,9 +51,9 @@ class TodoList extends Component {
 
     this.state = {
       tasks: [
-        {text: "Сделать домашку", done: false},
-        {text: "Сделать практику", done: false},
-        {text: "Пойти домой", done: false},
+        {text: "Сделать домашку", done: false, confirmDelete: false},
+        {text: "Сделать практику", done: false, confirmDelete: false},
+        {text: "Пойти домой", done: false, confirmDelete: false},
       ],
       inputValue: "",
     };
@@ -79,7 +79,12 @@ class TodoList extends Component {
   };
 
   deleteTask = (index) => {
-    this.state.tasks.splice(index, 1);
+    const task = this.state.tasks[index];
+    if (!task.confirmDelete) {
+      task.confirmDelete = true;
+    } else {
+      this.state.tasks.splice(index, 1);
+    }
     this.update();
   };
   
@@ -117,8 +122,8 @@ class TodoList extends Component {
         this.state.tasks.map((task, index) =>
           createElement("li", {}, [
             createElement("input", { type: "checkbox" }, null, { change: () => this.toggleTask(index) }),
-            createElement("label", {style: task.done ? "color: gray; text-decoration: line-through;" : "",}, task.text),
-            createElement("button", {}, "🗑️", { click: () => this.deleteTask(index) }),
+            createElement("label", { style: task.done ? "color: gray; text-decoration: line-through;" : "" }, task.text),
+            createElement("button", { style: task.confirmDelete ? "background-color: red;" : "" }, "🗑️", { click: () => this.deleteTask(index) }),
           ])
         )
       ),
