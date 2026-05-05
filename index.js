@@ -48,15 +48,20 @@ class Component {
 class TodoList extends Component {
   constructor() {
     super();
+    const savedTasks = localStorage.getItem("tasks");
 
     this.state = {
-      tasks: [
+      tasks: savedTasks ? JSON.parse(savedTasks) : [
         {text: "Сделать домашку", done: false, confirmDelete: false},
         {text: "Сделать практику", done: false, confirmDelete: false},
         {text: "Пойти домой", done: false, confirmDelete: false},
       ],
       inputValue: "",
     };
+  }
+
+  saveToLocalStorage() {
+    localStorage.setItem("tasks", JSON.stringify(this.state.tasks));
   }
 
   onAddInputChange = (e) => {
@@ -68,14 +73,17 @@ class TodoList extends Component {
     this.state.tasks.push({
       text: this.state.inputValue,
       done: false,
+      confirmDelete: false,
     });
     this.state.inputValue = "";
     this.update();
+    this.saveToLocalStorage();
   };
 
   toggleTask = (index) => {
     this.state.tasks[index].done = !this.state.tasks[index].done;
     this.update();
+    this.saveToLocalStorage();
   };
 
   deleteTask = (index) => {
@@ -86,6 +94,7 @@ class TodoList extends Component {
       this.state.tasks.splice(index, 1);
     }
     this.update();
+    this.saveToLocalStorage();
   };
   
   render() {
